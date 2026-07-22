@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -33,6 +34,12 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
+	if err != nil {
+		utils.SendError(w, http.StatusInternalServerError, "Failed to encrypt password", err.Error())
+	}
+
+	newUser.Password = string(hashedBytes)
 	newUser.ID = len(users) + 1
 	newUser.CreatedAt = time.Now()
 	newUser.UpdatedAt = nil
@@ -45,7 +52,43 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.SendSuccess(w, http.StatusCreated, "User created successfully", newUser)
+	utils.SendSuccess(w, http.StatusCreated, "User created successfully", newUser.ID)
+}
+
+func LoginUser(w http.ResponseWriter, r *http.Request) {
+	var userRequest models.LoginRequest
+	err := json.NewDecoder(r.Body).Decode(&userRequest)
+	if err != nil {
+		utils.SendError(w, http.StatusBadRequest, "Invalid JSON", err.Error())
+		return
+	}
+
+	users, err := storage.LoadUsers()
+	if err != nil {
+		utils.SendError(w, http.StatusInternalServerError, "Failed to load database", err.Error())
+		return
+	}
+
+	var foundUser *models.User
+	for _, user := range users {
+		if user.Email == userRequest.Email && user.DeletedAt == nil {
+			foundUser = &user
+			break
+		}
+	}
+
+	if foundUser == nil {
+		utils.SendError(w, http.StatusUnauthorized, "Invalid email or password", nil)
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(userRequest.Password))
+	if err != nil {
+		utils.SendError(w, http.StatusUnauthorized, "Invalid email or password", nil)
+		return
+	}
+
+	utils.SendSuccess(w, http.StatusOK, "Login successful!", nil)
 }
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
@@ -55,10 +98,16 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var activeUsers []models.User
+	var activeUsers []models.Author
 	for _, users := range users {
 		if users.DeletedAt == nil {
-			activeUsers = append(activeUsers, users)
+			author := models.Author{
+				ID:        users.ID,
+				FirstName: users.FirstName,
+				LastName:  users.LastName,
+				Email:     users.Email,
+			}
+			activeUsers = append(activeUsers, author)
 		}
 	}
 
@@ -93,7 +142,13 @@ func GetUsersByID(w http.ResponseWriter, r *http.Request) {
 
 	for i := range users {
 		if users[i].ID == id && users[i].DeletedAt == nil {
-			utils.SendSuccess(w, http.StatusOK, "Users loaded succesfully", users[i])
+			author := models.Author{
+				ID:        users[i].ID,
+				FirstName: users[i].FirstName,
+				LastName:  users[i].LastName,
+				Email:     users[i].Email,
+			}
+			utils.SendSuccess(w, http.StatusOK, "Users loaded succesfully", author)
 			return
 		}
 	}
@@ -130,14 +185,21 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	for i := range users {
 		if users[i].ID == id && users[i].DeletedAt == nil {
+			author := models.Author{
+				ID:        users[i].ID,
+				FirstName: users[i].FirstName,
+				LastName:  users[i].LastName,
+				Email:     users[i].Email,
+			}
+
 			if updatedUser.FirstName != "" {
-				users[i].FirstName = updatedUser.FirstName
+				author.FirstName = updatedUser.FirstName
 			}
 			if updatedUser.LastName != "" {
-				users[i].LastName = updatedUser.LastName
+				author.LastName = updatedUser.LastName
 			}
 			if updatedUser.Email != "" {
-				users[i].Email = updatedUser.Email
+				author.Email = updatedUser.Email
 			}
 			if updatedUser.Password != "" {
 				users[i].Password = updatedUser.Password
@@ -152,7 +214,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			utils.SendSuccess(w, http.StatusOK, "User updated successfully", users[i])
+			utils.SendSuccess(w, http.StatusOK, "User updated successfully", author)
 			return
 		}
 	}

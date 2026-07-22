@@ -31,13 +31,6 @@ type NewsResponse struct {
 	DeletedAt *time.Time `json:"deleted_at"`
 }
 
-type Author struct {
-	ID        int    `json:"id"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Email     string `json:"email"`
-}
-
 type UpdateNews struct {
 	Title            string `json:"title" validate:"omitempty,min=3"`
 	ShortDescription string `json:"short_description" validate:"omitempty,min=10"`

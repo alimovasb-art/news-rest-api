@@ -56,6 +56,6 @@ func GetUserByID(id int) (*models.User, error) {
 			return &user, nil
 		}
 	}
-	// Если цикл закончился, а мы никого не нашли:
+
 	return nil, errors.New("user not found")
 }

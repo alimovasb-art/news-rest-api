@@ -9,7 +9,7 @@ type News struct {
 	Description      string `json:"description" validate:"required,min=15"`
 	Views            int    `json:"views"`
 
-	AuthorID int `json:"author_id" validate:"required"`
+	AuthorID int `json:"author_id"`
 
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt *time.Time `json:"updated_at"`

@@ -16,16 +16,16 @@ func SetupRoutes() *http.ServeMux {
 }
 
 func setupNewsRoues(mux *http.ServeMux) {
-	mux.HandleFunc("POST /news", handlers.CreateNews)
+	mux.HandleFunc("POST /news", handlers.AuthMiddleware(handlers.CreateNews))
 	mux.HandleFunc("GET /news", handlers.GetNews)
 	mux.HandleFunc("GET /news/{id}", handlers.GetNewsByID)
-	mux.HandleFunc("PUT /news/{id}", handlers.UpdateNews)
-	mux.HandleFunc("PATCH /news/{id}", handlers.PatchNews)
+	mux.HandleFunc("PUT /news/{id}", handlers.AuthMiddleware(handlers.UpdateNews))
+	mux.HandleFunc("PATCH /news/{id}", handlers.AuthMiddleware(handlers.PatchNews))
 	mux.HandleFunc("DELETE /news/{id}", handlers.DeleteNews)
 }
 
 func setupUsersRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("POST POST /auth/signup", handlers.CreateUser)
+	mux.HandleFunc("POST /auth/signup", handlers.CreateUser)
 	mux.HandleFunc("POST /auth/login", handlers.LoginUser)
 	mux.HandleFunc("GET /users", handlers.GetUsers)
 	mux.HandleFunc("GET /users/{id}", handlers.GetUsersByID)

@@ -14,16 +14,24 @@ import (
 )
 
 func CreateNews(w http.ResponseWriter, r *http.Request) {
-	news, err := storage.LoadNews()
-	if err != nil {
-		utils.SendError(w, http.StatusInternalServerError, "Failed to load database", err.Error())
+	authorID, ok := r.Context().Value("author_id").(int)
+	if !ok {
+		utils.SendError(w, http.StatusInternalServerError, "Failed to get user from context", nil)
 		return
 	}
 
 	var newNews models.News
-	err = json.NewDecoder(r.Body).Decode(&newNews)
+	err := json.NewDecoder(r.Body).Decode(&newNews)
 	if err != nil {
 		utils.SendError(w, http.StatusBadRequest, "Invalid JSON format", err.Error())
+		return
+	}
+
+	newNews.AuthorID = authorID
+
+	news, err := storage.LoadNews()
+	if err != nil {
+		utils.SendError(w, http.StatusInternalServerError, "Failed to load database", err.Error())
 		return
 	}
 
@@ -31,12 +39,6 @@ func CreateNews(w http.ResponseWriter, r *http.Request) {
 	err = validate.Struct(newNews)
 	if err != nil {
 		utils.SendError(w, http.StatusBadRequest, "You must fill title(from 3 to 20 symbols), description(from 10 to 40 symbols) and short_description(from 20)", err.Error())
-		return
-	}
-
-	_, err = storage.GetUserByID(newNews.AuthorID)
-	if err != nil {
-		utils.SendError(w, http.StatusBadRequest, "Author not found", nil)
 		return
 	}
 
@@ -215,6 +217,12 @@ func UpdateNews(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	authorID, ok := r.Context().Value("author_id").(int)
+	if !ok {
+		utils.SendError(w, http.StatusInternalServerError, "Failed to get user from context", nil)
+		return
+	}
+
 	var updateNews models.News
 	err = json.NewDecoder(r.Body).Decode(&updateNews)
 	if err != nil {
@@ -239,6 +247,11 @@ func UpdateNews(w http.ResponseWriter, r *http.Request) {
 		if news[i].ID == id {
 			if news[i].DeletedAt != nil {
 				utils.SendError(w, http.StatusNotFound, "There are no news with this id", nil)
+				return
+			}
+
+			if authorID != news[i].AuthorID {
+				utils.SendError(w, http.StatusBadRequest, "Only author can update news, you are not the author of this news!", nil)
 				return
 			}
 
@@ -270,6 +283,12 @@ func PatchNews(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	authorID, ok := r.Context().Value("author_id").(int)
+	if !ok {
+		utils.SendError(w, http.StatusInternalServerError, "Failed to get user from context", nil)
+		return
+	}
+
 	var updateNews models.UpdateNews
 	err = json.NewDecoder(r.Body).Decode(&updateNews)
 	if err != nil {
@@ -294,6 +313,11 @@ func PatchNews(w http.ResponseWriter, r *http.Request) {
 		if news[i].ID == id {
 			if news[i].DeletedAt != nil {
 				utils.SendError(w, http.StatusNotFound, "There are no news with this id", nil)
+				return
+			}
+
+			if authorID != news[i].AuthorID {
+				utils.SendError(w, http.StatusBadRequest, "Only author can update news, you are not the author of this news!", nil)
 				return
 			}
 

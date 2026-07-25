@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -34,9 +35,17 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for _, user := range users {
+		if newUser.Email == user.Email {
+			utils.SendError(w, http.StatusBadRequest, "User with this email alradey registereg in system", nil)
+			return
+		}
+	}
+
 	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
 	if err != nil {
 		utils.SendError(w, http.StatusInternalServerError, "Failed to encrypt password", err.Error())
+		return
 	}
 
 	newUser.Password = string(hashedBytes)
@@ -52,8 +61,14 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.SendSuccess(w, http.StatusCreated, "User created successfully", newUser.ID)
+	response := map[string]int{
+		"user_id": newUser.ID,
+	}
+
+	utils.SendSuccess(w, http.StatusCreated, "User created successfully", response)
 }
+
+var jwtSecretKey = []byte("hello-everyone")
 
 func LoginUser(w http.ResponseWriter, r *http.Request) {
 	var userRequest models.LoginRequest
@@ -88,7 +103,26 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.SendSuccess(w, http.StatusOK, "Login successful!", nil)
+	claims := jwt.MapClaims{
+		"author_id":  foundUser.ID,
+		"first_name": foundUser.FirstName,
+		"last_name":  foundUser.LastName,
+		"exp":        time.Now().Add(time.Hour * 24).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	tokenString, err := token.SignedString(jwtSecretKey)
+	if err != nil {
+		utils.SendError(w, http.StatusInternalServerError, "Failed to generate token", err.Error())
+		return
+	}
+
+	response := map[string]string{
+		"token": tokenString,
+	}
+
+	utils.SendSuccess(w, http.StatusOK, "Login successful!", response)
 }
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {

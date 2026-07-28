@@ -29,6 +29,6 @@ func setupUsersRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /auth/login", handlers.LoginUser)
 	mux.HandleFunc("GET /users", handlers.GetUsers)
 	mux.HandleFunc("GET /users/{id}", handlers.GetUsersByID)
-	mux.HandleFunc("PATCH /users/{id}", handlers.UpdateUser)
+	mux.HandleFunc("PATCH /users/{id}", handlers.AuthMiddleware(handlers.UpdateUser))
 	mux.HandleFunc("DELETE /users/{id}", handlers.DeleteUser)
 }

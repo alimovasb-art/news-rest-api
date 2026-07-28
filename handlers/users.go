@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"news-restapi/models"
@@ -15,14 +16,9 @@ import (
 )
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
-	users, err := storage.LoadUsers()
-	if err != nil {
-		utils.SendError(w, http.StatusInternalServerError, "Failed to load database", err.Error())
-		return
-	}
 
 	var newUser models.User
-	err = json.NewDecoder(r.Body).Decode(&newUser)
+	err := json.NewDecoder(r.Body).Decode(&newUser)
 	if err != nil {
 		utils.SendError(w, http.StatusBadRequest, "Invalid JSON format", err.Error())
 		return
@@ -35,34 +31,28 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, user := range users {
-		if newUser.Email == user.Email {
-			utils.SendError(w, http.StatusBadRequest, "User with this email alradey registereg in system", nil)
-			return
-		}
-	}
-
 	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
 	if err != nil {
 		utils.SendError(w, http.StatusInternalServerError, "Failed to encrypt password", err.Error())
 		return
 	}
 
-	newUser.Password = string(hashedBytes)
-	newUser.ID = len(users) + 1
-	newUser.CreatedAt = time.Now()
-	newUser.UpdatedAt = nil
-	newUser.DeletedAt = nil
+	query := `INSERT INTO users (first_name, last_name, email, password) VALUES($1, $2, $3, $4) RETURNING id`
 
-	users = append(users, newUser)
-	err = storage.SaveUsers(users)
+	var newID int
+	err = storage.DB.QueryRow(context.Background(), query,
+		newUser.FirstName,
+		newUser.LastName,
+		newUser.Email,
+		string(hashedBytes),
+	).Scan(&newID)
 	if err != nil {
-		utils.SendError(w, http.StatusInternalServerError, "Failed to save user", err.Error())
+		utils.SendError(w, http.StatusConflict, "User with this email already exist (or other error in db)", err.Error())
 		return
 	}
 
 	response := map[string]int{
-		"user_id": newUser.ID,
+		"user_id": newID,
 	}
 
 	utils.SendSuccess(w, http.StatusCreated, "User created successfully", response)
@@ -78,22 +68,20 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := storage.LoadUsers()
+	var foundUser models.User
+	query := `
+	SELECT id, first_name, last_name, email, password 
+	FROM users 
+	WHERE email =$1 AND deleted_at IS NULL`
+	err = storage.DB.QueryRow(context.Background(), query, userRequest.Email).Scan(
+		&foundUser.ID,
+		&foundUser.FirstName,
+		&foundUser.LastName,
+		&foundUser.Email,
+		&foundUser.Password,
+	)
 	if err != nil {
-		utils.SendError(w, http.StatusInternalServerError, "Failed to load database", err.Error())
-		return
-	}
-
-	var foundUser *models.User
-	for _, user := range users {
-		if user.Email == userRequest.Email && user.DeletedAt == nil {
-			foundUser = &user
-			break
-		}
-	}
-
-	if foundUser == nil {
-		utils.SendError(w, http.StatusUnauthorized, "Invalid email or password", nil)
+		utils.SendError(w, http.StatusUnauthorized, "Invalid email or password", err.Error())
 		return
 	}
 
@@ -107,6 +95,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		"author_id":  foundUser.ID,
 		"first_name": foundUser.FirstName,
 		"last_name":  foundUser.LastName,
+		"email":      foundUser.Email,
 		"exp":        time.Now().Add(time.Hour * 24).Unix(),
 	}
 
@@ -126,38 +115,44 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := storage.LoadUsers()
-	if err != nil {
-		utils.SendError(w, http.StatusInternalServerError, "Failed to load database", err.Error())
-		return
-	}
-
-	var activeUsers []models.Author
-	for _, users := range users {
-		if users.DeletedAt == nil {
-			author := models.Author{
-				ID:        users.ID,
-				FirstName: users.FirstName,
-				LastName:  users.LastName,
-				Email:     users.Email,
-			}
-			activeUsers = append(activeUsers, author)
-		}
-	}
 
 	page, limit := utils.GetPaginationParams(r)
+	offset := (page - 1) * limit
 
-	startIndex := (page - 1) * limit
-	endIndex := startIndex + limit
-
-	if startIndex > len(activeUsers) {
-		startIndex = len(activeUsers)
+	query := `
+		SELECT id, first_name, last_name, email
+		FROM users
+		WHERE deleted_at IS NULL
+		ORDER BY id
+		LIMIT $1 OFFSET $2
+	`
+	rows, err := storage.DB.Query(context.Background(), query, limit, offset)
+	if err != nil {
+		utils.SendError(w, http.StatusInternalServerError, "Database error", err.Error())
+		return
 	}
-	if endIndex > len(activeUsers) {
-		endIndex = len(activeUsers)
+	defer rows.Close()
+
+	var activeUsers []models.Author
+
+	for rows.Next() {
+		var user models.Author
+
+		err := rows.Scan(
+			&user.ID,
+			&user.FirstName,
+			&user.LastName,
+			&user.Email,
+		)
+
+		if err != nil {
+			continue
+		}
+
+		activeUsers = append(activeUsers, user)
 	}
 
-	utils.SendSuccess(w, http.StatusOK, "Users loaded successfully", activeUsers[startIndex:endIndex])
+	utils.SendSuccess(w, http.StatusOK, "Users loaded successfully", activeUsers)
 }
 
 func GetUsersByID(w http.ResponseWriter, r *http.Request) {
@@ -168,25 +163,25 @@ func GetUsersByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := storage.LoadUsers()
+	query := `
+		SELECT id, first_name, last_name, email
+		FROM users
+		WHERE deleted_at IS NULL AND id = $1
+	`
+	var foundedUser models.Author
+
+	err = storage.DB.QueryRow(context.Background(), query, id).Scan(
+		&foundedUser.ID,
+		&foundedUser.FirstName,
+		&foundedUser.LastName,
+		&foundedUser.Email,
+	)
 	if err != nil {
-		utils.SendError(w, http.StatusInternalServerError, "Failed to load database", err.Error())
+		utils.SendError(w, http.StatusBadRequest, "There are no users with this id", err.Error())
 		return
 	}
 
-	for i := range users {
-		if users[i].ID == id && users[i].DeletedAt == nil {
-			author := models.Author{
-				ID:        users[i].ID,
-				FirstName: users[i].FirstName,
-				LastName:  users[i].LastName,
-				Email:     users[i].Email,
-			}
-			utils.SendSuccess(w, http.StatusOK, "Users loaded succesfully", author)
-			return
-		}
-	}
-	utils.SendError(w, http.StatusNotFound, "There are no users with this id", nil)
+	utils.SendSuccess(w, http.StatusOK, "User loaded successfully", foundedUser)
 }
 
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -197,63 +192,52 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var updatedUser models.UpdateUser
-	err = json.NewDecoder(r.Body).Decode(&updatedUser)
+	var updateUser models.UpdateUser
+	err = json.NewDecoder(r.Body).Decode(&updateUser)
 	if err != nil {
 		utils.SendError(w, http.StatusBadRequest, "Invalid JSON format", err.Error())
 		return
 	}
 
+	tokenAuthorID, ok := r.Context().Value("author_id").(int)
+	if !ok {
+		utils.SendError(w, http.StatusUnauthorized, "Failed to get ID from token", nil)
+		return
+	}
+
+	if tokenAuthorID != id {
+		utils.SendError(w, http.StatusForbidden, "You do not have permission to modify this user's data", nil)
+		return
+	}
+
 	validate := validator.New()
-	err = validate.Struct(updatedUser)
+	err = validate.Struct(updateUser)
 	if err != nil {
 		utils.SendError(w, http.StatusBadRequest, "Please fill all fields", err.Error())
 		return
 	}
 
-	users, err := storage.LoadUsers()
-	if err != nil {
-		utils.SendError(w, http.StatusInternalServerError, "Failed to lode database", err.Error())
-		return
-	}
+	query := `
+		UPDATE users 
+		SET 
+    		first_name = COALESCE(NULLIF($1, ''), first_name),
+    		last_name = COALESCE(NULLIF($2, ''), last_name),
+    		email = COALESCE(NULLIF($3, ''), email),
+    		password = COALESCE(NULLIF($4, ''), password),
+    		updated_at = CURRENT_TIMESTAMP
+		WHERE id = $5 AND deleted_at IS NULL
+		RETURNING id, first_name, last_name, email
+	`
 
-	for i := range users {
-		if users[i].ID == id && users[i].DeletedAt == nil {
-			author := models.Author{
-				ID:        users[i].ID,
-				FirstName: users[i].FirstName,
-				LastName:  users[i].LastName,
-				Email:     users[i].Email,
-			}
+	var updatedUser models.Author
+	storage.DB.QueryRow(context.Background(), query, updateUser.FirstName, updateUser.LastName, updateUser.Email, updateUser.Password).Scan(
+		&updatedUser.ID,
+		&updatedUser.FirstName,
+		updatedUser.LastName,
+		updatedUser.Email,
+	)
 
-			if updatedUser.FirstName != "" {
-				author.FirstName = updatedUser.FirstName
-			}
-			if updatedUser.LastName != "" {
-				author.LastName = updatedUser.LastName
-			}
-			if updatedUser.Email != "" {
-				author.Email = updatedUser.Email
-			}
-			if updatedUser.Password != "" {
-				users[i].Password = updatedUser.Password
-			}
-
-			now := time.Now()
-			users[i].UpdatedAt = &now
-
-			err := storage.SaveUsers(users)
-			if err != nil {
-				utils.SendError(w, http.StatusInternalServerError, "Failed to save updated user", err.Error())
-				return
-			}
-
-			utils.SendSuccess(w, http.StatusOK, "User updated successfully", author)
-			return
-		}
-	}
-
-	utils.SendError(w, http.StatusBadRequest, "There are no user with this id", nil)
+	utils.SendSuccess(w, http.StatusOK, "User updated succesfully", updateUser)
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {

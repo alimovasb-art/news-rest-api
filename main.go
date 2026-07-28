@@ -4,9 +4,15 @@ import (
 	"fmt"
 	"net/http"
 	"news-restapi/routes"
+	"news-restapi/storage"
 )
 
 func main() {
+
+	storage.ConnectDB()
+
+	storage.InitTables()
+
 	fmt.Println("Server is working on 8080 port")
 
 	mux := routes.SetupRoutes()

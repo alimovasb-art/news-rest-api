@@ -30,5 +30,5 @@ func setupUsersRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /users", handlers.GetUsers)
 	mux.HandleFunc("GET /users/{id}", handlers.GetUsersByID)
 	mux.HandleFunc("PATCH /users/{id}", handlers.AuthMiddleware(handlers.UpdateUser))
-	mux.HandleFunc("DELETE /users/{id}", handlers.DeleteUser)
+	mux.HandleFunc("DELETE /users/{id}", handlers.AuthMiddleware(handlers.DeleteUser))
 }

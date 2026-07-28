@@ -246,11 +246,12 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		updateUser.LastName,
 		updateUser.Email,
 		updateUser.Password,
+		id,
 	).Scan(
 		&updatedUser.ID,
 		&updatedUser.FirstName,
-		updatedUser.LastName,
-		updatedUser.Email,
+		&updatedUser.LastName,
+		&updatedUser.Email,
 	)
 
 	if err != nil {
@@ -269,27 +270,28 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := storage.LoadUsers()
-	if err != nil {
-		utils.SendError(w, http.StatusInternalServerError, "Failed to load databse", err.Error())
+	tokenAuthorID, ok := r.Context().Value("author_id").(int)
+	if !ok {
+		utils.SendError(w, http.StatusUnauthorized, "Failed to get ID from token", nil)
 		return
 	}
 
-	for i := range users {
-		if users[i].ID == id && users[i].DeletedAt == nil {
-			now := time.Now()
-			users[i].DeletedAt = &now
-
-			err = storage.SaveUsers(users)
-			if err != nil {
-				utils.SendError(w, http.StatusInternalServerError, "Failde to save to database", err.Error())
-				return
-			}
-
-			utils.SendSuccess(w, http.StatusOK, "User deleted successfully", nil)
-			return
-		}
+	if tokenAuthorID != id {
+		utils.SendError(w, http.StatusForbidden, "You do not have permission to delete this user", nil)
+		return
 	}
 
-	utils.SendError(w, http.StatusBadRequest, "There are no users with this id", nil)
+	query := `
+		UPDATE users
+		SET deleted_at = CURRENT_TIMESTAMP
+		WHERE deleted_at IS NULL AND id = $1
+	`
+
+	_, err = storage.DB.Exec(context.Background(), query, id)
+	if err != nil {
+		utils.SendError(w, http.StatusInternalServerError, "Failed to delete user", err.Error())
+		return
+	}
+
+	utils.SendSuccess(w, http.StatusOK, "User deleted successfully", nil)
 }

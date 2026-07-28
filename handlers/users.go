@@ -217,6 +217,15 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if updateUser.Password != "" {
+		hashedBytes, err := bcrypt.GenerateFromPassword([]byte(updateUser.Password), bcrypt.DefaultCost)
+		if err != nil {
+			utils.SendError(w, http.StatusInternalServerError, "Failed to encrypt password", err.Error())
+			return
+		}
+		updateUser.Password = string(hashedBytes)
+	}
+
 	query := `
 		UPDATE users 
 		SET 
@@ -230,12 +239,24 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	`
 
 	var updatedUser models.Author
-	storage.DB.QueryRow(context.Background(), query, updateUser.FirstName, updateUser.LastName, updateUser.Email, updateUser.Password).Scan(
+	err = storage.DB.QueryRow(
+		context.Background(),
+		query,
+		updateUser.FirstName,
+		updateUser.LastName,
+		updateUser.Email,
+		updateUser.Password,
+	).Scan(
 		&updatedUser.ID,
 		&updatedUser.FirstName,
 		updatedUser.LastName,
 		updatedUser.Email,
 	)
+
+	if err != nil {
+		utils.SendError(w, http.StatusInternalServerError, "Failed to update user", err.Error())
+		return
+	}
 
 	utils.SendSuccess(w, http.StatusOK, "User updated succesfully", updateUser)
 }

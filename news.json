@@ -6,6 +6,7 @@
     "description": "Интерактивный сериал 'Бесконечные миры' использует генеративный ИИ для создания сюжета в реальном времени. Искусственный интеллект анализирует выбор зрителя и адаптирует историю. У сериала уже 50 миллионов подписчиков и он стал самым популярным проектом Netflix.",
     "views": 7,
     "author_id": 1,
+    "author": null,
     "created_at": "2026-07-19T10:00:00+05:00",
     "updated_at": "2026-07-26T03:43:44.0243126+05:00",
     "deleted_at": null
@@ -17,6 +18,7 @@
     "description": "As extreme weather events become more frequent, the urgency to combat climate change has never been greater. This article examines the latest climate agreements, renewable energy breakthroughs, and grassroots movements that are driving change. Learn how individuals, corporations, and governments can work together to create a sustainable planet for future generations.",
     "views": 1,
     "author_id": 2,
+    "author": null,
     "created_at": "2026-07-19T10:15:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -28,6 +30,7 @@
     "description": "While blockchain is best known as the technology behind cryptocurrencies, its potential extends far beyond digital money. This in-depth article explores how blockchain is being used to create transparent supply chains, secure voting systems, protect digital identities, and streamline international trade. Discover the transformative power of distributed ledger technology in various industries.",
     "views": 1,
     "author_id": 3,
+    "author": null,
     "created_at": "2026-07-19T10:30:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -39,6 +42,7 @@
     "description": "In an increasingly connected world, mental health has become a critical concern. This article examines the relationship between social media usage, digital addiction, and mental well-being. Learn practical strategies for maintaining a healthy relationship with technology, setting boundaries, and prioritizing self-care in the digital age.",
     "views": 1,
     "author_id": 4,
+    "author": null,
     "created_at": "2026-07-19T10:45:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -50,6 +54,7 @@
     "description": "The race to explore space has entered an exciting new phase. From NASA's Artemis program to SpaceX's Starship, humanity is venturing further than ever before. This article covers upcoming missions to the Moon, Mars, and beyond, including plans for lunar bases, asteroid mining, and the search for extraterrestrial life in our solar system.",
     "views": 1,
     "author_id": 5,
+    "author": null,
     "created_at": "2026-07-19T11:00:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -61,6 +66,7 @@
     "description": "Quantum computing is no longer science fiction—it's becoming a reality. This article explains the fundamentals of quantum computing, how qubits work, and the potential applications in cryptography, drug discovery, and optimization problems. Learn about the leading companies in the quantum race and when we can expect practical quantum computers.",
     "views": 1,
     "author_id": 6,
+    "author": null,
     "created_at": "2026-07-19T11:15:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -72,6 +78,7 @@
     "description": "With the global population expected to reach 10 billion by 2050, sustainable agriculture is crucial. This article explores regenerative farming practices, vertical farming, precision agriculture, and plant-based alternatives that can help feed the world while protecting our planet's resources.",
     "views": 1,
     "author_id": 7,
+    "author": null,
     "created_at": "2026-07-19T11:30:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -83,6 +90,7 @@
     "description": "The COVID-19 pandemic accelerated the shift to remote work, and it's now a permanent fixture in many industries. This article examines the latest trends in remote work, including hybrid models, digital nomad visas, the role of AI in virtual collaboration, and how companies are adapting to a distributed workforce.",
     "views": 1,
     "author_id": 8,
+    "author": null,
     "created_at": "2026-07-19T11:45:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -94,6 +102,7 @@
     "description": "The electric vehicle revolution is in full swing. This article covers the latest advancements in EV technology, including solid-state batteries, longer ranges, faster charging, and autonomous driving capabilities. Learn about the new models hitting the market and how governments are supporting the transition to electric transportation.",
     "views": 1,
     "author_id": 9,
+    "author": null,
     "created_at": "2026-07-19T12:00:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -105,6 +114,7 @@
     "description": "Cyber threats continue to evolve, with ransomware, phishing, and AI-powered attacks on the rise. This comprehensive guide provides practical advice for protecting your personal and business data. Learn about multi-factor authentication, password managers, VPNs, and how to spot and avoid common cyber threats.",
     "views": 1,
     "author_id": 10,
+    "author": null,
     "created_at": "2026-07-19T12:15:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -116,6 +126,7 @@
     "description": "Renewable energy is now the cheapest source of new electricity in most parts of the world. This article explores the latest innovations in solar panel technology, wind turbine design, and energy storage solutions. Discover how renewable energy is reshaping the global energy landscape and reducing carbon emissions.",
     "views": 1,
     "author_id": 11,
+    "author": null,
     "created_at": "2026-07-19T12:30:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -127,6 +138,7 @@
     "description": "5G technology is transforming how we communicate and connect with the world. This article examines the impact of 5G on various industries, including healthcare, manufacturing, and entertainment. Learn about the benefits, challenges, and what the future holds for this game-changing technology.",
     "views": 1,
     "author_id": 12,
+    "author": null,
     "created_at": "2026-07-19T12:45:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -138,6 +150,7 @@
     "description": "In today's fast-paced world, mindfulness has become an essential tool for managing stress and anxiety. This article provides practical techniques for incorporating mindfulness into daily life, including meditation, breathing exercises, and mindful eating. Learn how these practices can improve mental health, focus, and overall quality of life.",
     "views": 1,
     "author_id": 13,
+    "author": null,
     "created_at": "2026-07-19T13:00:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -149,6 +162,7 @@
     "description": "The traditional classroom is evolving with the rise of e-learning platforms, AI tutors, and virtual reality education. This article explores how technology is making education more personalized, accessible, and engaging. Learn about the latest trends in ed-tech and how students are benefiting from these innovations.",
     "views": 1,
     "author_id": 14,
+    "author": null,
     "created_at": "2026-07-19T13:15:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -160,6 +174,7 @@
     "description": "The investment landscape is constantly evolving with new opportunities and challenges. This article covers the top investment trends for 2026, including sustainable investing, AI-powered trading, cryptocurrency, and emerging markets. Get expert insights on portfolio diversification and risk management strategies.",
     "views": 15,
     "author_id": 15,
+    "author": null,
     "created_at": "2026-07-19T13:30:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -171,6 +186,7 @@
     "description": "Sleep is essential for physical and mental health, yet many people struggle to get quality rest. This article explores the science of sleep, including the importance of circadian rhythms, REM cycles, and the impact of technology on sleep patterns. Learn practical tips for creating a sleep-friendly environment and improving sleep hygiene.",
     "views": 1,
     "author_id": 16,
+    "author": null,
     "created_at": "2026-07-19T13:45:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -182,6 +198,7 @@
     "description": "Artificial intelligence is transforming healthcare in unprecedented ways. This article explores how AI is being used for early disease detection, personalized treatment plans, drug discovery, and virtual health assistants. Learn about the ethical considerations and the future of medicine in an AI-driven world.",
     "views": 1,
     "author_id": 17,
+    "author": null,
     "created_at": "2026-07-19T14:00:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -193,6 +210,7 @@
     "description": "Color psychology is a fascinating field that explores how colors influence our emotions, behavior, and decision-making. This article examines the psychological effects of different colors, from the calming properties of blue to the energetic nature of red. Learn how to use color effectively in design, marketing, and everyday life.",
     "views": 1,
     "author_id": 18,
+    "author": null,
     "created_at": "2026-07-19T14:15:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -204,6 +222,7 @@
     "description": "Commercial space travel is no longer a dream—it's becoming a reality. This article explores the latest developments in space tourism, including suborbital flights, orbital hotels, and the companies making it possible. Learn about the costs, training requirements, and what the future holds for those dreaming of traveling to space.",
     "views": 1,
     "author_id": 19,
+    "author": null,
     "created_at": "2026-07-19T14:30:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -215,6 +234,7 @@
     "description": "More people are adopting plant-based diets for ethical, health, and environmental reasons. This article explores the benefits of plant-based eating, including improved heart health, weight management, and reduced environmental footprint. Discover delicious plant-based recipes and tips for transitioning to a more sustainable diet.",
     "views": 1,
     "author_id": 20,
+    "author": null,
     "created_at": "2026-07-19T14:45:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -226,6 +246,7 @@
     "description": "The power of positive thinking has been proven to improve mental health, resilience, and overall success. This article explores the science behind positive psychology, techniques for reframing negative thoughts, and how to cultivate a growth mindset. Learn from experts on how to harness the power of optimism in your personal and professional life.",
     "views": 1,
     "author_id": 21,
+    "author": null,
     "created_at": "2026-07-19T15:00:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -237,6 +258,7 @@
     "description": "Social media platforms have become a central part of modern life, shaping how we connect, communicate, and consume information. This article examines the positive and negative impacts of social media on society, including its role in activism, the spread of misinformation, and its effects on mental health and relationships.",
     "views": 1,
     "author_id": 22,
+    "author": null,
     "created_at": "2026-07-19T15:15:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -248,6 +270,7 @@
     "description": "Automation and AI are transforming the workplace, raising questions about job displacement and new opportunities. This article explores which industries are most affected by automation, how workers can adapt, and the new types of jobs that are emerging. Learn about the skills needed for the future workforce and how to stay relevant.",
     "views": 1,
     "author_id": 23,
+    "author": null,
     "created_at": "2026-07-19T15:30:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -259,6 +282,7 @@
     "description": "Biodiversity is the foundation of healthy ecosystems and essential for human survival. This article explores the importance of biodiversity, the threats it faces from habitat loss and climate change, and the actions needed to protect it. Learn about conservation efforts and how you can contribute to preserving the planet's rich biodiversity.",
     "views": 1,
     "author_id": 24,
+    "author": null,
     "created_at": "2026-07-19T15:45:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -270,6 +294,7 @@
     "description": "The video game industry has undergone a remarkable transformation over the decades. This article traces the evolution of video games, from early arcade classics to modern virtual reality experiences. Explore the technological advancements, iconic games, and the cultural impact of gaming on society and entertainment.",
     "views": 1,
     "author_id": 25,
+    "author": null,
     "created_at": "2026-07-19T16:00:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -281,6 +306,7 @@
     "description": "What makes us truly happy? This article explores the science of happiness, including research on the factors that contribute to well-being, such as relationships, gratitude, and purpose. Learn practical strategies for increasing happiness and life satisfaction based on scientific studies and expert advice.",
     "views": 1,
     "author_id": 26,
+    "author": null,
     "created_at": "2026-07-19T16:15:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -292,6 +318,7 @@
     "description": "Transportation is on the verge of a major revolution with emerging technologies like Hyperloop, autonomous vehicles, and electric aviation. This article explores the future of transportation, including high-speed travel, urban mobility solutions, and the potential for flying cars. Discover how these innovations will transform how we move and connect.",
     "views": 1,
     "author_id": 27,
+    "author": null,
     "created_at": "2026-07-19T16:30:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -303,6 +330,7 @@
     "description": "Meditation has been practiced for thousands of years and is now backed by modern science for its mental health benefits. This article explores how regular meditation practice can reduce stress, improve focus, enhance emotional well-being, and even change brain structure. Learn different meditation techniques and how to start a practice.",
     "views": 1,
     "author_id": 28,
+    "author": null,
     "created_at": "2026-07-19T16:45:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -314,6 +342,7 @@
     "description": "Online shopping continues to evolve with advancements in technology. This article explores the latest trends in e-commerce, including AI-powered personalization, augmented reality shopping, voice commerce, and sustainable packaging. Learn how these innovations are creating better shopping experiences and changing consumer behavior.",
     "views": 1,
     "author_id": 29,
+    "author": null,
     "created_at": "2026-07-19T17:00:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -325,6 +354,7 @@
     "description": "Women have been historically underrepresented in technology, but that's changing rapidly. This article highlights the contributions of women in tech, the challenges they've overcome, and the initiatives that are encouraging more young women to pursue careers in STEM. Learn about the inspiring women who are shaping the future of technology.",
     "views": 1,
     "author_id": 30,
+    "author": null,
     "created_at": "2026-07-19T17:15:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -336,6 +366,7 @@
     "description": "In today's data-driven world, analytics is essential for business success. This article explores how businesses are using data analytics to gain insights into customer behavior, optimize operations, and identify new opportunities. Learn about the tools and techniques that are transforming decision-making in the modern enterprise.",
     "views": 1,
     "author_id": 31,
+    "author": null,
     "created_at": "2026-07-19T17:30:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -347,6 +378,7 @@
     "description": "Cities around the world are becoming smarter with the integration of technology, IoT, and data analytics. This article explores the latest innovations in smart cities, from intelligent traffic management to smart energy grids and connected public services. Discover how these technologies are improving quality of life and reducing environmental impact.",
     "views": 1,
     "author_id": 32,
+    "author": null,
     "created_at": "2026-07-19T17:45:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -358,6 +390,7 @@
     "description": "Eating healthy doesn't have to be complicated or time-consuming. This article provides a collection of quick and nutritious recipes for busy people, along with meal prep tips and time-saving kitchen hacks. Discover how to enjoy flavorful meals without compromising on health or spending hours in the kitchen.",
     "views": 1,
     "author_id": 33,
+    "author": null,
     "created_at": "2026-07-19T18:00:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -369,6 +402,7 @@
     "description": "Habits shape our daily lives and are crucial to our success and well-being. This article explores the science of habit formation, including the habit loop, triggers, and rewards. Learn practical strategies for breaking bad habits and building positive ones that stick.",
     "views": 1,
     "author_id": 34,
+    "author": null,
     "created_at": "2026-07-19T18:15:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -380,6 +414,7 @@
     "description": "The digital marketing landscape continues to evolve rapidly with new technologies and platforms. This article explores the latest trends in digital marketing, including AI-powered personalization, voice search optimization, and the rise of short-form video content. Learn how businesses can adapt their marketing strategies to stay ahead.",
     "views": 14,
     "author_id": 35,
+    "author": null,
     "created_at": "2026-07-19T18:30:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -391,6 +426,7 @@
     "description": "Music isn't just entertaining—it's also good for your brain. This article explores the science behind how music affects brain development, cognitive function, emotional regulation, and memory. Learn about the benefits of learning an instrument and how music therapy is being used to treat various conditions.",
     "views": 1,
     "author_id": 36,
+    "author": null,
     "created_at": "2026-07-19T18:45:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -402,6 +438,7 @@
     "description": "Precision farming is revolutionizing agriculture with the use of drones, IoT sensors, AI, and satellite imaging. This article explores how these technologies are helping farmers monitor crops, optimize irrigation, reduce pesticide use, and increase yields. Discover how precision farming is contributing to food security and sustainability.",
     "views": 1,
     "author_id": 37,
+    "author": null,
     "created_at": "2026-07-19T19:00:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -413,6 +450,7 @@
     "description": "Public speaking is one of the most valuable skills you can develop. This article provides practical tips for overcoming stage fright, connecting with your audience, and delivering impactful presentations. Learn techniques for effective storytelling, body language, and vocal delivery that will make you a confident speaker.",
     "views": 1,
     "author_id": 38,
+    "author": null,
     "created_at": "2026-07-19T19:15:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -424,6 +462,7 @@
     "description": "Virtual reality is no longer a futuristic concept—it's here and transforming entertainment. This article explores how VR is being used in gaming, cinema, live events, and theme parks to create immersive experiences. Learn about the latest VR technologies and what the future holds for virtual entertainment.",
     "views": 1,
     "author_id": 39,
+    "author": null,
     "created_at": "2026-07-19T19:30:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -435,6 +474,7 @@
     "description": "Financial success is as much about psychology as it is about money. This article explores the psychology of money, including common money mindsets, biases, and emotional triggers that affect financial decisions. Learn practical strategies for developing a healthier relationship with money and achieving financial goals.",
     "views": 1,
     "author_id": 40,
+    "author": null,
     "created_at": "2026-07-19T19:45:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -446,6 +486,7 @@
     "description": "The field of bioengineering is making remarkable progress in creating artificial organs that can replace failing ones. This article explores the latest developments in 3D-printed organs, bioelectronics, and tissue engineering. Learn how these innovations are saving lives and what the future holds for organ transplantation.",
     "views": 1,
     "author_id": 41,
+    "author": null,
     "created_at": "2026-07-19T20:00:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -457,6 +498,7 @@
     "description": "Nature is a powerful healer. This article explores the mental health benefits of spending time outdoors, including reduced stress, improved mood, and increased creativity. Learn about the science behind nature therapy and discover practical ways to incorporate outdoor activities into your daily routine.",
     "views": 1,
     "author_id": 42,
+    "author": null,
     "created_at": "2026-07-19T20:15:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -468,6 +510,7 @@
     "description": "Personalized learning is transforming education by adapting to each student's learning pace and style. This article explores how AI, adaptive learning platforms, and data analytics are creating customized educational experiences. Learn about the benefits of personalized learning and its potential to improve educational outcomes.",
     "views": 1,
     "author_id": 43,
+    "author": null,
     "created_at": "2026-07-19T20:30:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -479,6 +522,7 @@
     "description": "Negotiation is a critical skill in both personal and professional life. This article provides practical strategies for effective negotiation, including preparation, communication, and problem-solving techniques. Learn how to achieve win-win outcomes and build stronger relationships through effective negotiation.",
     "views": 1,
     "author_id": 44,
+    "author": null,
     "created_at": "2026-07-19T20:45:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -490,6 +534,7 @@
     "description": "Our oceans are facing unprecedented threats from pollution, overfishing, and climate change. This article explores the importance of ocean conservation, the challenges facing marine life, and the initiatives being taken to protect our oceans. Learn about sustainable fishing practices, marine protected areas, and how you can help.",
     "views": 1,
     "author_id": 45,
+    "author": null,
     "created_at": "2026-07-19T21:00:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -501,6 +546,7 @@
     "description": "Reading offers countless benefits for personal growth, including expanded knowledge, improved empathy, and enhanced creativity. This article explores the science behind reading's benefits and provides recommendations for building a reading habit. Discover how books can transform your life and expand your perspective.",
     "views": 1,
     "author_id": 46,
+    "author": null,
     "created_at": "2026-07-19T21:15:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -512,6 +558,7 @@
     "description": "The fashion industry is undergoing a sustainability revolution with new materials, circular design, and technology. This article explores the latest trends in sustainable fashion, including biodegradable fabrics, 3D-printed clothing, and the circular economy. Learn how fashion is becoming more ethical and environmentally conscious.",
     "views": 1,
     "author_id": 47,
+    "author": null,
     "created_at": "2026-07-19T21:30:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -523,6 +570,7 @@
     "description": "Nutrition science is constantly evolving, and understanding it can help you make better dietary choices. This article explores the fundamentals of nutrition, including macro and micronutrients, the importance of balanced eating, and the role of diet in disease prevention. Learn practical tips for building a healthy and sustainable diet.",
     "views": 1,
     "author_id": 48,
+    "author": null,
     "created_at": "2026-07-19T21:45:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -534,6 +582,7 @@
     "description": "Robotics technology is advancing rapidly, with robots becoming more capable and integrated into everyday life. This article explores how robots are being used in homes, healthcare, manufacturing, and retail. Learn about the latest innovations in humanoid robots, collaborative robots, and the ethical considerations of a robot-filled future.",
     "views": 1,
     "author_id": 1,
+    "author": null,
     "created_at": "2026-07-19T22:00:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -545,6 +594,7 @@
     "description": "Gratitude is a powerful practice that can transform your perspective and improve your quality of life. This article explores the science behind gratitude, including its benefits for mental health, relationships, and physical well-being. Learn practical gratitude exercises and how to incorporate this practice into your daily routine for lasting change.",
     "views": 1,
     "author_id": 50,
+    "author": null,
     "created_at": "2026-07-19T22:15:00+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -556,6 +606,7 @@
     "description": "Это обновленное длинное описание нашей новости",
     "views": 0,
     "author_id": 1,
+    "author": null,
     "created_at": "2026-07-21T19:28:57.0886106+05:00",
     "updated_at": null,
     "deleted_at": null
@@ -567,6 +618,7 @@
     "description": "Интерактивный сериал 'Бесконечные миры' использует генеративный ИИ для создания сюжета в реальном времени. Искусственный интеллект анализирует выбор зрителя и адаптирует историю. У сериала уже 50 миллионов подписчиков и он стал самым популярным проектом Netflix.",
     "views": 0,
     "author_id": 1,
+    "author": null,
     "created_at": "2026-07-26T03:20:36.6806868+05:00",
     "updated_at": "2026-07-26T03:54:17.2138829+05:00",
     "deleted_at": null
@@ -578,6 +630,7 @@
     "description": "Интерактивный сериал 'Бесконечные миры' использует генеративный ИИ для создания сюжета в реальном времени. Искусственный интеллект анализирует выбор зрителя и адаптирует историю. У сериала уже 50 миллионов подписчиков и он стал самым популярным проектом Netflix.",
     "views": 0,
     "author_id": 1,
+    "author": null,
     "created_at": "2026-07-26T03:24:31.7983508+05:00",
     "updated_at": "2026-07-26T03:52:39.6508552+05:00",
     "deleted_at": null
@@ -587,8 +640,9 @@
     "title": "Netflix",
     "short_description": "Каждый зритель видит уникальную версию сериала с альтернативными финалами и развитием персонажей",
     "description": "Интерактивный сериал 'Бесконечные миры' использует генеративный ИИ для создания сюжета в реальном времени. Искусственный интеллект анализирует выбор зрителя и адаптирует историю. У сериала уже 50 миллионов подписчиков и он стал самым популярным проектом Netflix.",
-    "views": 1,
+    "views": 2,
     "author_id": 1,
+    "author": null,
     "created_at": "2026-07-26T03:25:11.6567156+05:00",
     "updated_at": "2026-07-26T03:52:24.0032874+05:00",
     "deleted_at": null

@@ -1,16 +1,18 @@
 package handlers
 
 import (
+	"context"
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"news-restapi/models"
 	"news-restapi/storage"
 	"news-restapi/utils"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/jackc/pgx/v5"
 )
 
 func CreateNews(w http.ResponseWriter, r *http.Request) {
@@ -29,12 +31,6 @@ func CreateNews(w http.ResponseWriter, r *http.Request) {
 
 	newNews.AuthorID = authorID
 
-	news, err := storage.LoadNews()
-	if err != nil {
-		utils.SendError(w, http.StatusInternalServerError, "Failed to load database", err.Error())
-		return
-	}
-
 	validate := validator.New()
 	err = validate.Struct(newNews)
 	if err != nil {
@@ -42,123 +38,96 @@ func CreateNews(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newNews.ID = len(news) + 1
-	newNews.CreatedAt = time.Now()
-	newNews.UpdatedAt = nil
-	newNews.Views = 0
+	query := `
+		SELECT id, first_name, last_name, email
+		FROM users
+		WHERE id = $1
+	`
 
-	news = append(news, newNews)
-	err = storage.SaveNews(news)
+	var authorObject models.Author
+	err = storage.DB.QueryRow(context.Background(), query, authorID).Scan(
+		&authorObject.ID,
+		&authorObject.FirstName,
+		&authorObject.LastName,
+		&authorObject.Email,
+	)
+
 	if err != nil {
-		utils.SendError(w, http.StatusInternalServerError, "Failed to save news", err.Error())
+		if err == sql.ErrNoRows {
+			utils.SendError(w, http.StatusNotFound, "Author not found in database", nil)
+		} else {
+			utils.SendError(w, http.StatusInternalServerError, "Database error while fetching author", err.Error())
+		}
 		return
 	}
 
-	utils.SendSuccess(w, http.StatusCreated, "News created successfully", newNews)
+	query = `
+		INSERT INTO news (author_id, title, short_description, description)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id, title, short_description, description, author_id, created_at
+	`
+
+	var userResponse models.NewsResponse
+	err = storage.DB.QueryRow(
+		context.Background(), query,
+		newNews.AuthorID,
+		newNews.Title,
+		newNews.ShortDescription,
+		newNews.Description,
+	).Scan(
+		&userResponse.ID,
+		&userResponse.Title,
+		&userResponse.ShortDescription,
+		&userResponse.Description,
+		&userResponse.AuthorID,
+		userResponse.CreatedAt,
+	)
+	if err != nil {
+		utils.SendError(w, http.StatusInternalServerError, "Failed to create news in database", err.Error())
+		return
+	}
+
+	userResponse.Author = &authorObject
+	utils.SendSuccess(w, http.StatusCreated, "News created successfully", userResponse)
 }
 
-func GetNews(w http.ResponseWriter, r *http.Request) {
-	authorIdStr := r.URL.Query().Get("author_id")
-	title := r.URL.Query().Get("title")
+// func GetNews(w http.ResponseWriter, r *http.Request) {
+// 	authorIdStr := r.URL.Query().Get("author_id")
+// 	title := r.URL.Query().Get("title")
+// 	page, limit := utils.GetPaginationParams(r)
+// 	offset := (page - 1) * limit
 
-	if title != "" {
-		news, err := storage.LoadNewsJoinedUsers()
-		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, "Invalid title format", err.Error())
-			return
-		}
+// 	query := `
+// 		SELECT
+// 			n.id,
+// 			n.title,
+// 			n.short_description,
+// 			n.description,
+// 			n.author_id,
+// 			u.id,
+// 			u.first_name,
+// 			u.last_name,
+// 			u.email,
+// 			n.views,
+// 			n.created_at
+// 		FROM news n
+// 		JOIN users u ON n.author_id = u.id
+// 		WHERE n.deleted_at IS NULL
+// 	`
 
-		query := strings.ToLower(title)
+// 	var arguments []interface{}
+// 	argumentsID := 1
 
-		var result []models.NewsResponse
+// 	if authorIdStr != ""{
+// 		authorID, err := strconv.Atoi(authorIdStr)
+// 		if err != nil {
+// 			utils.SendError(w, http.StatusBadRequest, "Invalid ID format", err.Error())
+// 			return
+// 		}
 
-		for i := range news {
-			if strings.Contains(strings.ToLower(news[i].Title), query) {
-				result = append(result, news[i])
-			}
-		}
+// 	}
 
-		if len(result) == 0 {
-			utils.SendError(w, http.StatusNotFound, "No news found for this title", nil)
-			return
-		}
-
-		utils.SendSuccess(w, http.StatusOK, "News by author found", result)
-		return
-	}
-	//Get news by authors
-	if authorIdStr != "" {
-		authorID, err := strconv.Atoi(authorIdStr)
-		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, "Invalid ID format", err.Error())
-			return
-		}
-
-		news, err := storage.LoadNewsJoinedUsers()
-		if err != nil {
-			utils.SendError(w, http.StatusInternalServerError, "Failed to load database", err.Error())
-			return
-		}
-
-		var newsByAuthors []models.NewsResponse
-
-		for i := range news {
-			if news[i].AuthorID == authorID && news[i].DeletedAt == nil {
-				newsByAuthors = append(newsByAuthors, news[i])
-			}
-		}
-
-		if len(newsByAuthors) == 0 {
-			utils.SendError(w, http.StatusNotFound, "No news found for this author", nil)
-			return
-		}
-
-		utils.SendSuccess(w, http.StatusOK, "News by author found", newsByAuthors)
-		return
-	}
-
-	news, err := storage.LoadNewsResponse()
-	if err != nil {
-		utils.SendError(w, http.StatusInternalServerError, "Failed to load database", err.Error())
-		return
-	}
-	var activeNews []models.NewsResponse
-	for _, news := range news {
-		if news.DeletedAt == nil {
-			activeNews = append(activeNews, news)
-		}
-	}
-
-	page, limit := utils.GetPaginationParams(r)
-
-	startIndex := (page - 1) * limit
-	endIndex := startIndex + limit
-
-	if startIndex > len(activeNews) {
-		startIndex = len(activeNews)
-	}
-	if endIndex > len(activeNews) {
-		endIndex = len(activeNews)
-	}
-
-	paginatedNews := activeNews[startIndex:endIndex]
-
-	for i := range paginatedNews {
-		user, err := storage.GetUserByID(paginatedNews[i].AuthorID)
-		if err != nil {
-			utils.SendError(w, http.StatusBadRequest, "Author not found", nil)
-			return
-		}
-		paginatedNews[i].Author = &models.Author{
-			ID:        user.ID,
-			FirstName: user.FirstName,
-			LastName:  user.LastName,
-			Email:     user.Email,
-		}
-	}
-
-	utils.SendSuccess(w, http.StatusOK, "News list retrived", paginatedNews)
-}
+// }
 
 func GetNewsByID(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
@@ -168,45 +137,60 @@ func GetNewsByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	news, err := storage.LoadNewsResponse()
+	query := `
+		SELECT 
+			n.id,
+			n.title,
+			n.short_description,
+			n.description,
+			n.views,
+			n.author_id,
+			u.id,
+			u.first_name,
+			u.last_name,
+			u.email,
+			n.created_at
+		FROM news n
+		JOIN users u ON n.author_id = u.id 
+		WHERE n.id = $1 AND n.deleted_at IS NULL
+	`
+	var responseNews models.NewsResponse
+	var author models.Author
+
+	err = storage.DB.QueryRow(context.Background(), query, id).Scan(
+		&responseNews.ID,
+		&responseNews.Title,
+		&responseNews.ShortDescription,
+		&responseNews.Description,
+		&responseNews.Views,
+		&responseNews.AuthorID,
+
+		&author.ID,
+		&author.FirstName,
+		&author.LastName,
+		&author.Email,
+
+		&responseNews.CreatedAt,
+	)
+	responseNews.Author = &author
+
 	if err != nil {
-		utils.SendError(w, http.StatusInternalServerError, "Failed to load database", err.Error())
+		if err == pgx.ErrNoRows {
+			utils.SendError(w, http.StatusNotFound, "News not found", nil)
+		} else {
+			utils.SendError(w, http.StatusInternalServerError, "Database error", err.Error())
+		}
 		return
 	}
-	for i := range news {
-		if news[i].ID == id {
-			if news[i].DeletedAt != nil {
-				utils.SendError(w, http.StatusNotFound, "There are no news with this id", nil)
-				return
-			}
 
-			news[i].Views++
-			err = storage.SaveNewsResponse(news)
-			if err != nil {
-				utils.SendError(w, http.StatusInternalServerError, "Failed to save news", err.Error())
-				return
-			}
+	storage.DB.Exec(context.Background(), "UPDATE news SET views = views + 1 WHERE id = $1", id)
 
-			user, err := storage.GetUserByID(news[i].AuthorID)
-			if err != nil {
-				utils.SendError(w, http.StatusNotFound, "Failed to find user", err.Error())
-				return
-			}
+	responseNews.Views++
 
-			saveAuthor := models.Author{
-				ID:        user.ID,
-				FirstName: user.FirstName,
-				LastName:  user.LastName,
-				Email:     user.Email,
-			}
+	storage.DB.Exec(context.Background(), query)
 
-			news[i].Author = &saveAuthor
+	utils.SendSuccess(w, http.StatusOK, "News fetched successfully", responseNews)
 
-			utils.SendSuccess(w, http.StatusOK, "News fetched successfully", news[i])
-			return
-		}
-	}
-	utils.SendError(w, http.StatusNotFound, "There are no news with this id", nil)
 }
 
 func UpdateNews(w http.ResponseWriter, r *http.Request) {

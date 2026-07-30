@@ -17,7 +17,7 @@ func SetupRoutes() *http.ServeMux {
 
 func setupNewsRoues(mux *http.ServeMux) {
 	mux.HandleFunc("POST /news", handlers.AuthMiddleware(handlers.CreateNews))
-	// mux.HandleFunc("GET /news", handlers.GetNews)
+	mux.HandleFunc("GET /news", handlers.GetNews)
 	mux.HandleFunc("GET /news/{id}", handlers.GetNewsByID)
 	mux.HandleFunc("PUT /news/{id}", handlers.AuthMiddleware(handlers.UpdateNews))
 	mux.HandleFunc("PATCH /news/{id}", handlers.AuthMiddleware(handlers.PatchNews))

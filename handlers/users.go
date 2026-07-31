@@ -7,6 +7,7 @@ import (
 	"news-restapi/models"
 	"news-restapi/storage"
 	"news-restapi/utils"
+	"os"
 	"strconv"
 	"time"
 
@@ -58,7 +59,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	utils.SendSuccess(w, http.StatusCreated, "User created successfully", response)
 }
 
-var jwtSecretKey = []byte("hello-everyone")
+var jwtSecretKey = []byte(os.Getenv("JWT_SECRET"))
 
 func LoginUser(w http.ResponseWriter, r *http.Request) {
 	var userRequest models.LoginRequest
@@ -177,7 +178,7 @@ func GetUsersByID(w http.ResponseWriter, r *http.Request) {
 		&foundedUser.Email,
 	)
 	if err != nil {
-		utils.SendError(w, http.StatusBadRequest, "There are no users with this id", err.Error())
+		utils.SendError(w, http.StatusNotFound, "There are no users with this id", err.Error())
 		return
 	}
 
@@ -259,7 +260,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.SendSuccess(w, http.StatusOK, "User updated succesfully", updateUser)
+	utils.SendSuccess(w, http.StatusOK, "User updated succesfully", updatedUser)
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {

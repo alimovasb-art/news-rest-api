@@ -21,7 +21,7 @@ func setupNewsRoues(mux *http.ServeMux) {
 	mux.HandleFunc("GET /news/{id}", handlers.GetNewsByID)
 	mux.HandleFunc("PUT /news/{id}", handlers.AuthMiddleware(handlers.UpdateNews))
 	mux.HandleFunc("PATCH /news/{id}", handlers.AuthMiddleware(handlers.PatchNews))
-	mux.HandleFunc("DELETE /news/{id}", handlers.DeleteNews)
+	mux.HandleFunc("DELETE /news/{id}", handlers.AuthMiddleware(handlers.DeleteNews))
 }
 
 func setupUsersRoutes(mux *http.ServeMux) {

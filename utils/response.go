@@ -9,7 +9,7 @@ import (
 type APIResponse struct {
 	Success bool   `json:"success"`
 	Code    int    `json:"code"`
-	Message string `json:"massage"`
+	Message string `json:"message"`
 	Error   any    `json:"error"`
 	Data    any    `json:"data"`
 }

@@ -9,6 +9,10 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
+type contextKey string
+
+const AuthorIDKey contextKey = "author_id"
+
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
@@ -41,7 +45,7 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 		authorID := int(claims["author_id"].(float64))
 
-		ctx := context.WithValue(r.Context(), "author_id", authorID)
+		ctx := context.WithValue(r.Context(), AuthorIDKey, authorID)
 		r = r.WithContext(ctx)
 
 		next(w, r)

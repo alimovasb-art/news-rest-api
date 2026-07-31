@@ -1,8 +1,10 @@
 # News REST API
 
-A high-performance, robust, and production-ready RESTful API built with Go (Golang) and PostgreSQL.
+> **Note**: This is an educational project created for learning and mastering Go (Golang), PostgreSQL, JWT authentication, and RESTful API architecture.
 
-This application provides complete authentication, user management, and a news publishing system with advanced features like dynamic searching, pagination, partial updates (PATCH), soft deletes, and JWT-based authorization.
+A high-performance, robust RESTful API built with Go (Golang) and PostgreSQL.
+
+This application provides complete authentication, user management, and a news publishing system with features like dynamic searching, pagination, partial updates (PATCH), soft deletes, and JWT-based authorization.
 
 ---
 

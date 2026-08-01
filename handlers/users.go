@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt"
+	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -93,11 +94,8 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	claims := jwt.MapClaims{
-		"author_id":  foundUser.ID,
-		"first_name": foundUser.FirstName,
-		"last_name":  foundUser.LastName,
-		"email":      foundUser.Email,
-		"exp":        time.Now().Add(time.Hour * 24).Unix(),
+		"author_id": foundUser.ID,
+		"exp":       time.Now().Add(time.Hour * 24).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -113,6 +111,36 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.SendSuccess(w, http.StatusOK, "Login successful!", response)
+}
+
+func GetMe(w http.ResponseWriter, r *http.Request) {
+	tokenAuthorID, ok := r.Context().Value("author_id").(int)
+	if !ok {
+		utils.SendError(w, http.StatusUnauthorized, "Failed to get ID from context", nil)
+		return
+	}
+
+	query := `
+		SELECT id, first_name, last_name, email FROM users WHERE id = $1 AND deleted_at IS NULL
+	`
+
+	var getMe models.Author
+	err := storage.DB.QueryRow(context.Background(), query, tokenAuthorID).Scan(
+		&getMe.ID,
+		&getMe.FirstName,
+		&getMe.LastName,
+		&getMe.Email,
+	)
+
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			utils.SendError(w, http.StatusNotFound, "User not found", nil)
+		} else {
+			utils.SendError(w, http.StatusInternalServerError, "Database error", err.Error())
+		}
+		return
+	}
+	utils.SendSuccess(w, http.StatusOK, "Current user fetched successfully", getMe)
 }
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
@@ -186,15 +214,9 @@ func GetUsersByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		utils.SendError(w, http.StatusBadRequest, "Invalid id type", err.Error())
-		return
-	}
 
 	var updateUser models.UpdateUser
-	err = json.NewDecoder(r.Body).Decode(&updateUser)
+	err := json.NewDecoder(r.Body).Decode(&updateUser)
 	if err != nil {
 		utils.SendError(w, http.StatusBadRequest, "Invalid JSON format", err.Error())
 		return
@@ -203,11 +225,6 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	tokenAuthorID, ok := r.Context().Value("author_id").(int)
 	if !ok {
 		utils.SendError(w, http.StatusUnauthorized, "Failed to get ID from token", nil)
-		return
-	}
-
-	if tokenAuthorID != id {
-		utils.SendError(w, http.StatusForbidden, "You do not have permission to modify this user's data", nil)
 		return
 	}
 
@@ -247,7 +264,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		updateUser.LastName,
 		updateUser.Email,
 		updateUser.Password,
-		id,
+		tokenAuthorID,
 	).Scan(
 		&updatedUser.ID,
 		&updatedUser.FirstName,

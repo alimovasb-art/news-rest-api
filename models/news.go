@@ -9,7 +9,8 @@ type News struct {
 	Description      string `json:"description" validate:"required,min=15"`
 	Views            int    `json:"views"`
 
-	AuthorID int `json:"author_id"`
+	AuthorID int    `json:"author_id"`
+	ImageURL string `json:"image_url,omitempty"`
 
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt *time.Time `json:"updated_at"`
@@ -25,6 +26,8 @@ type NewsResponse struct {
 
 	AuthorID int     `json:"author_id"`
 	Author   *Author `json:"author"`
+
+	ImageURL string `json:"image_url,omitempty"`
 
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt *time.Time `json:"updated_at"`

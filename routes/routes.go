@@ -11,6 +11,7 @@ func SetupRoutes() *http.ServeMux {
 
 	setupNewsRoues(mux)
 	setupUsersRoutes(mux)
+	setupStaticRoutes(mux)
 
 	return mux
 }
@@ -32,4 +33,9 @@ func setupUsersRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /users/{id}", handlers.GetUsersByID)
 	mux.HandleFunc("PATCH /users", handlers.AuthMiddleware(handlers.UpdateUser))
 	mux.HandleFunc("DELETE /users/{id}", handlers.AuthMiddleware(handlers.DeleteUser))
+}
+
+func setupStaticRoutes(mux *http.ServeMux) {
+	fileServer := http.FileServer(http.Dir("./uploads"))
+	mux.Handle("GET /uploads/", http.StripPrefix("/uploads/", fileServer))
 }

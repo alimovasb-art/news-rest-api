@@ -4,11 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"news-restapi/models"
 	"news-restapi/storage"
 	"news-restapi/utils"
+	"os"
+	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5"
@@ -21,20 +25,52 @@ func CreateNews(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var newNews models.News
-	err := json.NewDecoder(r.Body).Decode(&newNews)
+	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
+
+	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
-		utils.SendError(w, http.StatusBadRequest, "Invalid JSON format", err.Error())
+		utils.SendError(w, http.StatusBadRequest, "Invalid form data or request too large (max 10MB)", err.Error())
 		return
 	}
 
-	newNews.AuthorID = authorID
+	title := r.FormValue("title")
+	shortDesc := r.FormValue("short_description")
+	description := r.FormValue("description")
+
+	newNews := models.News{
+		Title:            title,
+		ShortDescription: shortDesc,
+		Description:      description,
+	}
 
 	validate := validator.New()
 	err = validate.Struct(newNews)
 	if err != nil {
 		utils.SendError(w, http.StatusBadRequest, "You must fill title(from 3 to 20 symbols), description(from 10 to 40 symbols) and short_description(from 20)", err.Error())
 		return
+	}
+
+	var imageURL string
+	file, header, err := r.FormFile("image")
+	if err == nil {
+		defer file.Close()
+
+		fileName := fmt.Sprintf("%d_%s", time.Now().UnixNano(), header.Filename)
+		filePath := filepath.Join("./uploads", fileName)
+
+		dst, err := os.Create(filePath)
+		if err != nil {
+			utils.SendError(w, http.StatusInternalServerError, "Failed to save file on disk", err.Error())
+			return
+		}
+		defer dst.Close()
+
+		_, err = io.Copy(dst, file)
+		if err != nil {
+			utils.SendError(w, http.StatusInternalServerError, "Failed to write file bytes", err.Error())
+			return
+		}
+		imageURL = "/uploads/" + fileName
 	}
 
 	query := `
@@ -60,34 +96,32 @@ func CreateNews(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query = `
-		INSERT INTO news (author_id, title, short_description, description)
-		VALUES ($1, $2, $3, $4)
-		RETURNING id, title, short_description, description, author_id, created_at
+	insertQuery := `
+		INSERT INTO news (author_id, title, short_description, description, image_url)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, title, short_description, description, views, author_id, image_url, created_at
 	`
-
-	var userResponse models.NewsResponse
+	var newsResponse models.NewsResponse
 	err = storage.DB.QueryRow(
-		context.Background(), query,
-		newNews.AuthorID,
-		newNews.Title,
-		newNews.ShortDescription,
-		newNews.Description,
+		context.Background(), insertQuery,
+		authorID, title, shortDesc, description, imageURL,
 	).Scan(
-		&userResponse.ID,
-		&userResponse.Title,
-		&userResponse.ShortDescription,
-		&userResponse.Description,
-		&userResponse.AuthorID,
-		&userResponse.CreatedAt,
+		&newsResponse.ID,
+		&newsResponse.Title,
+		&newsResponse.ShortDescription,
+		&newsResponse.Description,
+		&newsResponse.Views,
+		&newsResponse.AuthorID,
+		&newsResponse.ImageURL,
+		&newsResponse.CreatedAt,
 	)
 	if err != nil {
 		utils.SendError(w, http.StatusInternalServerError, "Failed to create news in database", err.Error())
 		return
 	}
 
-	userResponse.Author = &authorObject
-	utils.SendSuccess(w, http.StatusCreated, "News created successfully", userResponse)
+	newsResponse.Author = &authorObject
+	utils.SendSuccess(w, http.StatusCreated, "News created successfully", newsResponse)
 }
 
 func GetNews(w http.ResponseWriter, r *http.Request) {
@@ -97,21 +131,22 @@ func GetNews(w http.ResponseWriter, r *http.Request) {
 	offset := (page - 1) * limit
 
 	query := `
-		SELECT
-			n.id,
-			n.title,
-			n.short_description,
-			n.description,
-			n.author_id,
-			u.id,
-			u.first_name,
-			u.last_name,
-			u.email,
-			n.views,
-			n.created_at
-		FROM news n
-		JOIN users u ON n.author_id = u.id
-		WHERE n.deleted_at IS NULL
+	SELECT
+    	n.id,
+    	n.title,
+    	n.short_description,
+    	n.description,
+    	COALESCE(n.image_url, '') AS image_url,
+   		n.author_id,
+    	u.id,
+    	u.first_name,
+    	u.last_name,
+    	u.email,
+    	n.views,
+   		n.created_at
+	FROM news n
+	JOIN users u ON n.author_id = u.id
+	WHERE n.deleted_at IS NULL
 	`
 
 	var arguments []interface{}
@@ -155,6 +190,7 @@ func GetNews(w http.ResponseWriter, r *http.Request) {
 			&item.Title,
 			&item.ShortDescription,
 			&item.Description,
+			&item.ImageURL,
 			&item.AuthorID,
 			&author.ID,
 			&author.FirstName,
@@ -194,6 +230,7 @@ func GetNewsByID(w http.ResponseWriter, r *http.Request) {
 			n.title,
 			n.short_description,
 			n.description,
+			COALESCE(n.image_url, '') AS image_url,
 			n.views,
 			n.author_id,
 			u.id,
@@ -213,6 +250,7 @@ func GetNewsByID(w http.ResponseWriter, r *http.Request) {
 		&responseNews.Title,
 		&responseNews.ShortDescription,
 		&responseNews.Description,
+		&responseNews.ImageURL,
 		&responseNews.Views,
 		&responseNews.AuthorID,
 

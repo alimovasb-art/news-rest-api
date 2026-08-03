@@ -6,9 +6,12 @@ import (
 	"news-restapi/handlers"
 	"news-restapi/routes"
 	"news-restapi/storage"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	_ = godotenv.Load()
 
 	storage.ConnectDB()
 

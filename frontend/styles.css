@@ -915,7 +915,7 @@ i.fa-solid, i.fa-regular, i.fa-brands {
 }
 
 .modal-box.modal-box-large {
-  max-width: 700px;
+  max-width: 780px;
 }
 
 /* Reader Modal: Dedicated Full Height & Inner Scrolling */
@@ -1430,20 +1430,44 @@ textarea {
 /* ==================== AUTHORS DIRECTORY ==================== */
 .authors-list-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
-  max-height: 420px;
+  max-height: 440px;
   overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.2rem 0.4rem 0.2rem 0;
+}
+
+@media (max-width: 720px) {
+  .authors-list-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .author-card-item {
-  background: var(--bg-card);
+  background: var(--bg-subtle);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 1rem;
+  padding: 0.85rem 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+  transition: var(--transition);
+}
+
+.author-card-item:hover {
+  background: var(--bg-subtle-hover);
+  border-color: var(--border-strong);
+}
+
+.author-info-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
 }
 
 .author-item-avatar {
@@ -1457,6 +1481,35 @@ textarea {
   justify-content: center;
   font-weight: 700;
   font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.author-text-meta {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.author-item-name {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--text-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.author-item-email {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.author-card-item .btn-author-filter {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 /* Danger Zone */

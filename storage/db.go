@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -14,7 +15,7 @@ func ConnectDB() {
 
 	fmt.Print("Starting program\n")
 
-	dns := "postgres://postgres:postgres@localhost:5432/news_db?sslmode=disable"
+	dns := os.Getenv("DB_CONN")
 
 	pool, err := pgxpool.New(context.Background(), dns)
 	if err != nil {

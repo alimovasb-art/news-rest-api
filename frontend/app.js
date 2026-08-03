@@ -682,11 +682,11 @@ async function openAuthorsModal() {
 
       return `
         <div class="author-card-item">
-          <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div class="author-info-group">
             <div class="author-item-avatar">${escapeHtml(initials.toUpperCase())}</div>
-            <div>
-              <div style="font-weight: 600; font-size: 0.92rem; color: var(--text-white);">${escapeHtml(fullName)}</div>
-              <div style="font-size: 0.78rem; color: var(--text-dim);">${escapeHtml(u.email || '')}</div>
+            <div class="author-text-meta">
+              <div class="author-item-name">${escapeHtml(fullName)}</div>
+              <div class="author-item-email" title="${escapeHtml(u.email || '')}">${escapeHtml(u.email || '')}</div>
             </div>
           </div>
           <button class="btn-author-filter" onclick="closeModal('authorsModal'); filterByAuthor(${u.id}, '${escapeHtml(fullName)}')">

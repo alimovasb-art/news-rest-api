@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -52,6 +53,11 @@ func CreateNews(w http.ResponseWriter, r *http.Request) {
 
 	var imageURL string
 	file, header, err := r.FormFile("image")
+	if err != nil && !errors.Is(err, http.ErrMissingFile) {
+		utils.SendError(w, http.StatusBadRequest, "Failed to parse uploaded image", err.Error())
+		return
+	}
+
 	if err == nil {
 		defer file.Close()
 
@@ -373,11 +379,22 @@ func PatchNews(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var updateNews models.UpdateNews
-	err = json.NewDecoder(r.Body).Decode(&updateNews)
+	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
+
+	err = r.ParseMultipartForm(10 << 20)
 	if err != nil {
-		utils.SendError(w, http.StatusBadRequest, "Invalid JSON format", err.Error())
+		utils.SendError(w, http.StatusBadRequest, "Invalid form data or request too large (max 10MB)", err.Error())
 		return
+	}
+
+	title := r.FormValue("title")
+	shortDescription := r.FormValue("short_description")
+	description := r.FormValue("description")
+
+	updateNews := models.NewsResponse{
+		Title:            title,
+		ShortDescription: shortDescription,
+		Description:      description,
 	}
 
 	validate := validator.New()
@@ -387,17 +404,46 @@ func PatchNews(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var imageURL string
+	file, header, err := r.FormFile("image")
+	if err != nil && !errors.Is(err, http.ErrMissingFile) {
+		utils.SendError(w, http.StatusBadRequest, "Failed to parse uploaded image", err.Error())
+		return
+	}
+
+	if err == nil {
+		defer file.Close()
+
+		fileName := fmt.Sprintf("%d_%s", time.Now().UnixNano(), header.Filename)
+		filePath := filepath.Join("./uploads/", fileName)
+
+		dst, err := os.Create(filePath)
+		if err != nil {
+			utils.SendError(w, http.StatusInternalServerError, "Failed to save file on disk", err.Error())
+			return
+		}
+		defer dst.Close()
+
+		_, err = io.Copy(dst, file)
+		if err != nil {
+			utils.SendError(w, http.StatusInternalServerError, "Failed to write file bytes", err.Error())
+			return
+		}
+		imageURL = "/uploads/" + fileName
+	}
+
 	query := `
 		UPDATE news n
 		SET
 			title = COALESCE(NULLIF($1, ''), n.title),
 			short_description = COALESCE(NULLIF($2, ''), n.short_description),
 			description = COALESCE(NULLIF($3, ''), n.description),
+			image = COALESCE(NULLIF($4, ''), n.image),
 			updated_at = CURRENT_TIMESTAMP
 		FROM users u
 		WHERE n.author_id = u.id
-		AND n.id = $4
-		AND n.author_id = $5
+		AND n.id = $5
+		AND n.author_id = $6
 		AND n.deleted_at IS NULL
 		RETURNING 
 			n.id, n.title, n.short_description, n.description, n.views, n.author_id,
@@ -407,11 +453,12 @@ func PatchNews(w http.ResponseWriter, r *http.Request) {
 
 	var responseNews models.NewsResponse
 	var author models.Author
-	err = storage.DB.QueryRow(context.Background(), query, updateNews.Title, updateNews.ShortDescription, updateNews.Description, id, authorID).Scan(
+	err = storage.DB.QueryRow(context.Background(), query, updateNews.Title, updateNews.ShortDescription, updateNews.Description, imageURL, id, authorID).Scan(
 		&responseNews.ID,
 		&responseNews.Title,
 		&responseNews.ShortDescription,
 		&responseNews.Description,
+		&responseNews.ImageURL,
 		&responseNews.Views,
 		&responseNews.AuthorID,
 

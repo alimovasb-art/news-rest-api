@@ -44,7 +44,6 @@ func InitTables() {
 		log.Fatalf("Failed to create news table: %v", err)
 	}
 
-	// Ensure image column exists if table was created earlier
 	_, _ = DB.Exec(context.Background(), `ALTER TABLE news ADD COLUMN IF NOT EXISTS image VARCHAR(255)`)
 
 	log.Printf("Table news successfully created/checked!")

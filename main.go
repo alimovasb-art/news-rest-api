@@ -38,6 +38,6 @@ func main() {
 		port = "3000"
 	}
 
-	log.Printf("🚀 NewsPulse Fiber Server is running on port %s...\n", port)
+	log.Printf("NewsPulse Fiber Server is running on port %s...\n", port)
 	log.Fatal(app.Listen(":" + port))
 }

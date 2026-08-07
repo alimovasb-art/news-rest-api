@@ -1,62 +1,44 @@
 package handlers
 
 import (
-	"context"
-	"net/http"
 	"news-restapi/utils"
+	"os"
 	"strings"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt"
 )
 
-func EnableCORS(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
-}
+var jwtSecretKey = []byte(os.Getenv("JWT_SECRET"))
 
-func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get("Authorization")
-		if authHeader == "" {
-			utils.SendError(w, http.StatusUnauthorized, "Missing Authorization header", nil)
-			return
-		}
-
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			utils.SendError(w, http.StatusUnauthorized, "Invalid Authorization format", nil)
-			return
-		}
-
-		tokenString := parts[1]
-
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			return jwtSecretKey, nil
-		})
-		if err != nil || !token.Valid {
-			utils.SendError(w, http.StatusUnauthorized, "Invalid or expired token", nil)
-			return
-		}
-
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok {
-			utils.SendError(w, http.StatusUnauthorized, "Invalid token claims", nil)
-			return
-		}
-
-		authorID := int(claims["author_id"].(float64))
-
-		ctx := context.WithValue(r.Context(), "author_id", authorID)
-		r = r.WithContext(ctx)
-
-		next(w, r)
+func AuthMiddleware(c *fiber.Ctx) error {
+	authHeader := c.Get("Authorization")
+	if authHeader == "" {
+		return utils.SendError(c, fiber.StatusUnauthorized, "Missing Authorization header", nil)
 	}
+
+	parts := strings.Split(authHeader, " ")
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return utils.SendError(c, fiber.StatusUnauthorized, "Invalid Authorization format", nil)
+	}
+
+	tokenString := parts[1]
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return jwtSecretKey, nil
+	})
+	if err != nil || !token.Valid {
+		return utils.SendError(c, fiber.StatusUnauthorized, "Invalid or expired token", nil)
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return utils.SendError(c, fiber.StatusUnauthorized, "Invalid token claims", nil)
+	}
+
+	authorID := int(claims["author_id"].(float64))
+
+	c.Locals("author_id", authorID)
+
+	return c.Next()
 }

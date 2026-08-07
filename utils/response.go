@@ -1,9 +1,7 @@
 package utils
 
 import (
-	"encoding/json"
-	"net/http"
-	"strconv"
+	"github.com/gofiber/fiber/v2"
 )
 
 type APIResponse struct {
@@ -14,48 +12,29 @@ type APIResponse struct {
 	Data    any    `json:"data"`
 }
 
-func SendSuccess(w http.ResponseWriter, code int, message string, data any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-
-	response := APIResponse{
+func SendSuccess(c *fiber.Ctx, code int, message string, data any) error {
+	return c.Status(code).JSON(APIResponse{
 		Success: true,
 		Code:    code,
 		Message: message,
 		Error:   nil,
 		Data:    data,
-	}
-
-	json.NewEncoder(w).Encode(response)
+	})
 }
 
-func SendError(w http.ResponseWriter, code int, massage string, errorDetail any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-
-	response := APIResponse{
+func SendError(c *fiber.Ctx, code int, massage string, errorDetail any) error {
+	return c.Status(code).JSON(APIResponse{
 		Success: false,
 		Code:    code,
 		Message: massage,
 		Error:   errorDetail,
 		Data:    nil,
-	}
-
-	json.NewEncoder(w).Encode(response)
+	})
 }
 
-func GetPaginationParams(r *http.Request) (int, int) {
-	pageStr := r.URL.Query().Get("page")
-	limitStr := r.URL.Query().Get("limit")
-
-	page, err := strconv.Atoi(pageStr)
-	if err != nil {
-		page = 1
-	}
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		limit = 10
-	}
+func GetPaginationParams(c *fiber.Ctx) (int, int) {
+	page := c.QueryInt("page", 1)
+	limit := c.QueryInt("limit", 10)
 
 	if page < 1 {
 		page = 1

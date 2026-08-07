@@ -1,73 +1,67 @@
 package handlers
 
 import (
-	"context"
-	"encoding/json"
-	"net/http"
 	"news-restapi/models"
 	"news-restapi/storage"
 	"news-restapi/utils"
-	"os"
 	"strconv"
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt"
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func CreateUser(w http.ResponseWriter, r *http.Request) {
+func CreateUser(c *fiber.Ctx) error {
 
 	var newUser models.User
-	err := json.NewDecoder(r.Body).Decode(&newUser)
+	err := c.BodyParser(&newUser)
 	if err != nil {
-		utils.SendError(w, http.StatusBadRequest, "Invalid JSON format", err.Error())
-		return
+		return utils.SendError(c, fiber.StatusBadRequest, "Invalid JSON format", err.Error())
 	}
 
 	validate := validator.New()
 	err = validate.Struct(newUser)
 	if err != nil {
-		utils.SendError(w, http.StatusBadRequest, "Please fill all fields", err.Error())
-		return
+		return utils.SendError(c, fiber.StatusBadRequest, "Please fill all fields", err.Error())
+
 	}
 
 	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
 	if err != nil {
-		utils.SendError(w, http.StatusInternalServerError, "Failed to encrypt password", err.Error())
-		return
+		return utils.SendError(c, fiber.StatusInternalServerError, "Failed to encrypt password", err.Error())
+
 	}
 
 	query := `INSERT INTO users (first_name, last_name, email, password) VALUES($1, $2, $3, $4) RETURNING id`
 
 	var newID int
-	err = storage.DB.QueryRow(context.Background(), query,
+	err = storage.DB.QueryRow(c.Context(), query,
 		newUser.FirstName,
 		newUser.LastName,
 		newUser.Email,
 		string(hashedBytes),
 	).Scan(&newID)
 	if err != nil {
-		utils.SendError(w, http.StatusConflict, "User with this email already exist (or other error in db)", err.Error())
-		return
+		return utils.SendError(c, fiber.StatusConflict, "User with this email already exist (or other error in db)", err.Error())
+
 	}
 
 	response := map[string]int{
 		"user_id": newID,
 	}
 
-	utils.SendSuccess(w, http.StatusCreated, "User created successfully", response)
+	return utils.SendSuccess(c, fiber.StatusCreated, "User created successfully", response)
 }
 
-var jwtSecretKey = []byte(os.Getenv("JWT_SECRET"))
-
-func LoginUser(w http.ResponseWriter, r *http.Request) {
+func LoginUser(c *fiber.Ctx) error {
 	var userRequest models.LoginRequest
-	err := json.NewDecoder(r.Body).Decode(&userRequest)
+	err := c.BodyParser(&userRequest)
 	if err != nil {
-		utils.SendError(w, http.StatusBadRequest, "Invalid JSON", err.Error())
-		return
+		return utils.SendError(c, fiber.StatusBadRequest, "Invalid JSON", err.Error())
+
 	}
 
 	var foundUser models.User
@@ -75,7 +69,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	SELECT id, first_name, last_name, email, password 
 	FROM users 
 	WHERE email =$1 AND deleted_at IS NULL`
-	err = storage.DB.QueryRow(context.Background(), query, userRequest.Email).Scan(
+	err = storage.DB.QueryRow(c.Context(), query, userRequest.Email).Scan(
 		&foundUser.ID,
 		&foundUser.FirstName,
 		&foundUser.LastName,
@@ -83,14 +77,14 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		&foundUser.Password,
 	)
 	if err != nil {
-		utils.SendError(w, http.StatusUnauthorized, "Invalid email or password", err.Error())
-		return
+		return utils.SendError(c, fiber.StatusUnauthorized, "Invalid email or password", err.Error())
+
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(userRequest.Password))
 	if err != nil {
-		utils.SendError(w, http.StatusUnauthorized, "Invalid email or password", nil)
-		return
+		return utils.SendError(c, fiber.StatusUnauthorized, "Invalid email or password", nil)
+
 	}
 
 	claims := jwt.MapClaims{
@@ -102,22 +96,22 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	tokenString, err := token.SignedString(jwtSecretKey)
 	if err != nil {
-		utils.SendError(w, http.StatusInternalServerError, "Failed to generate token", err.Error())
-		return
+		return utils.SendError(c, fiber.StatusInternalServerError, "Failed to generate token", err.Error())
+
 	}
 
 	response := map[string]string{
 		"token": tokenString,
 	}
 
-	utils.SendSuccess(w, http.StatusOK, "Login successful!", response)
+	return utils.SendSuccess(c, fiber.StatusOK, "Login successful!", response)
 }
 
-func GetMe(w http.ResponseWriter, r *http.Request) {
-	tokenAuthorID, ok := r.Context().Value("author_id").(int)
+func GetMe(c *fiber.Ctx) error {
+	tokenAuthorID, ok := c.Locals("author_id").(int)
 	if !ok {
-		utils.SendError(w, http.StatusUnauthorized, "Failed to get ID from context", nil)
-		return
+		return utils.SendError(c, fiber.StatusUnauthorized, "Failed to get ID from context", nil)
+
 	}
 
 	query := `
@@ -125,7 +119,7 @@ func GetMe(w http.ResponseWriter, r *http.Request) {
 	`
 
 	var getMe models.Author
-	err := storage.DB.QueryRow(context.Background(), query, tokenAuthorID).Scan(
+	err := storage.DB.QueryRow(c.Context(), query, tokenAuthorID).Scan(
 		&getMe.ID,
 		&getMe.FirstName,
 		&getMe.LastName,
@@ -134,18 +128,17 @@ func GetMe(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			utils.SendError(w, http.StatusNotFound, "User not found", nil)
+			return utils.SendError(c, fiber.StatusNotFound, "User not found", nil)
 		} else {
-			utils.SendError(w, http.StatusInternalServerError, "Database error", err.Error())
+			return utils.SendError(c, fiber.StatusInternalServerError, "Database error", err.Error())
 		}
-		return
 	}
-	utils.SendSuccess(w, http.StatusOK, "Current user fetched successfully", getMe)
+	return utils.SendSuccess(c, fiber.StatusOK, "Current user fetched successfully", getMe)
 }
 
-func GetUsers(w http.ResponseWriter, r *http.Request) {
+func GetUsers(c *fiber.Ctx) error {
 
-	page, limit := utils.GetPaginationParams(r)
+	page, limit := utils.GetPaginationParams(c)
 	offset := (page - 1) * limit
 
 	query := `
@@ -155,10 +148,10 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 		ORDER BY id
 		LIMIT $1 OFFSET $2
 	`
-	rows, err := storage.DB.Query(context.Background(), query, limit, offset)
+	rows, err := storage.DB.Query(c.Context(), query, limit, offset)
 	if err != nil {
-		utils.SendError(w, http.StatusInternalServerError, "Database error", err.Error())
-		return
+		return utils.SendError(c, fiber.StatusInternalServerError, "Database error", err.Error())
+
 	}
 	defer rows.Close()
 
@@ -181,15 +174,15 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 		activeUsers = append(activeUsers, user)
 	}
 
-	utils.SendSuccess(w, http.StatusOK, "Users loaded successfully", activeUsers)
+	return utils.SendSuccess(c, fiber.StatusOK, "Users loaded successfully", activeUsers)
 }
 
-func GetUsersByID(w http.ResponseWriter, r *http.Request) {
-	idStr := r.PathValue("id")
+func GetUsersByID(c *fiber.Ctx) error {
+	idStr := c.Params("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		utils.SendError(w, http.StatusBadRequest, "Invalid ID format", err.Error())
-		return
+		return utils.SendError(c, fiber.StatusBadRequest, "Invalid ID format", err.Error())
+
 	}
 
 	query := `
@@ -199,47 +192,47 @@ func GetUsersByID(w http.ResponseWriter, r *http.Request) {
 	`
 	var foundedUser models.Author
 
-	err = storage.DB.QueryRow(context.Background(), query, id).Scan(
+	err = storage.DB.QueryRow(c.Context(), query, id).Scan(
 		&foundedUser.ID,
 		&foundedUser.FirstName,
 		&foundedUser.LastName,
 		&foundedUser.Email,
 	)
 	if err != nil {
-		utils.SendError(w, http.StatusNotFound, "There are no users with this id", err.Error())
-		return
+		return utils.SendError(c, fiber.StatusNotFound, "There are no users with this id", err.Error())
+
 	}
 
-	utils.SendSuccess(w, http.StatusOK, "User loaded successfully", foundedUser)
+	return utils.SendSuccess(c, fiber.StatusOK, "User loaded successfully", foundedUser)
 }
 
-func UpdateUser(w http.ResponseWriter, r *http.Request) {
+func UpdateUser(c *fiber.Ctx) error {
 
 	var updateUser models.UpdateUser
-	err := json.NewDecoder(r.Body).Decode(&updateUser)
+	err := c.BodyParser(&updateUser)
 	if err != nil {
-		utils.SendError(w, http.StatusBadRequest, "Invalid JSON format", err.Error())
-		return
+		return utils.SendError(c, fiber.StatusBadRequest, "Invalid JSON format", err.Error())
+
 	}
 
-	tokenAuthorID, ok := r.Context().Value("author_id").(int)
+	tokenAuthorID, ok := c.Locals("author_id").(int)
 	if !ok {
-		utils.SendError(w, http.StatusUnauthorized, "Failed to get ID from token", nil)
-		return
+		return utils.SendError(c, fiber.StatusUnauthorized, "Failed to get ID from token", nil)
+
 	}
 
 	validate := validator.New()
 	err = validate.Struct(updateUser)
 	if err != nil {
-		utils.SendError(w, http.StatusBadRequest, "Please fill all fields", err.Error())
-		return
+		return utils.SendError(c, fiber.StatusBadRequest, "Please fill all fields", err.Error())
+
 	}
 
 	if updateUser.Password != "" {
 		hashedBytes, err := bcrypt.GenerateFromPassword([]byte(updateUser.Password), bcrypt.DefaultCost)
 		if err != nil {
-			utils.SendError(w, http.StatusInternalServerError, "Failed to encrypt password", err.Error())
-			return
+			return utils.SendError(c, fiber.StatusInternalServerError, "Failed to encrypt password", err.Error())
+
 		}
 		updateUser.Password = string(hashedBytes)
 	}
@@ -258,7 +251,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	var updatedUser models.Author
 	err = storage.DB.QueryRow(
-		context.Background(),
+		c.Context(),
 		query,
 		updateUser.FirstName,
 		updateUser.LastName,
@@ -273,30 +266,30 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		utils.SendError(w, http.StatusInternalServerError, "Failed to update user", err.Error())
-		return
+		return utils.SendError(c, fiber.StatusInternalServerError, "Failed to update user", err.Error())
+
 	}
 
-	utils.SendSuccess(w, http.StatusOK, "User updated succesfully", updatedUser)
+	return utils.SendSuccess(c, fiber.StatusOK, "User updated succesfully", updatedUser)
 }
 
-func DeleteUser(w http.ResponseWriter, r *http.Request) {
-	idStr := r.PathValue("id")
+func DeleteUser(c *fiber.Ctx) error {
+	idStr := c.Params("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		utils.SendError(w, http.StatusBadRequest, "Invalid ID type", err.Error())
-		return
+		return utils.SendError(c, fiber.StatusBadRequest, "Invalid ID type", err.Error())
+
 	}
 
-	tokenAuthorID, ok := r.Context().Value("author_id").(int)
+	tokenAuthorID, ok := c.Locals("author_id").(int)
 	if !ok {
-		utils.SendError(w, http.StatusUnauthorized, "Failed to get ID from token", nil)
-		return
+		return utils.SendError(c, fiber.StatusUnauthorized, "Failed to get ID from token", nil)
+
 	}
 
 	if tokenAuthorID != id {
-		utils.SendError(w, http.StatusForbidden, "You do not have permission to delete this user", nil)
-		return
+		return utils.SendError(c, fiber.StatusForbidden, "You do not have permission to delete this user", nil)
+
 	}
 
 	query := `
@@ -305,11 +298,11 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		WHERE deleted_at IS NULL AND id = $1
 	`
 
-	_, err = storage.DB.Exec(context.Background(), query, id)
+	_, err = storage.DB.Exec(c.Context(), query, id)
 	if err != nil {
-		utils.SendError(w, http.StatusInternalServerError, "Failed to delete user", err.Error())
-		return
+		return utils.SendError(c, fiber.StatusInternalServerError, "Failed to delete user", err.Error())
+
 	}
 
-	utils.SendSuccess(w, http.StatusOK, "User deleted successfully", nil)
+	return utils.SendSuccess(c, fiber.StatusOK, "User deleted successfully", nil)
 }

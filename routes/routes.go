@@ -1,41 +1,35 @@
 package routes
 
 import (
-	"net/http"
 	"news-restapi/handlers"
+
+	"github.com/gofiber/fiber/v2"
 )
 
-func SetupRoutes() *http.ServeMux {
-
-	mux := http.NewServeMux()
-
-	setupNewsRoues(mux)
-	setupUsersRoutes(mux)
-	setupStaticRoutes(mux)
-
-	return mux
+func SetupRoutes(app *fiber.App) {
+	setupNewsRoutes(app)
+	setupUsersRoutes(app)
+	setupStaticRoutes(app)
 }
 
-func setupNewsRoues(mux *http.ServeMux) {
-	mux.HandleFunc("POST /news", handlers.AuthMiddleware(handlers.CreateNews))
-	mux.HandleFunc("GET /news", handlers.GetNews)
-	mux.HandleFunc("GET /news/{id}", handlers.GetNewsByID)
-	mux.HandleFunc("PUT /news/{id}", handlers.AuthMiddleware(handlers.UpdateNews))
-	mux.HandleFunc("PATCH /news/{id}", handlers.AuthMiddleware(handlers.PatchNews))
-	mux.HandleFunc("DELETE /news/{id}", handlers.AuthMiddleware(handlers.DeleteNews))
+func setupNewsRoutes(app *fiber.App) {
+	app.Post("/news", handlers.AuthMiddleware, handlers.CreateNews)
+	app.Get("/news", handlers.GetNews)
+	app.Get("/news/:id", handlers.GetNewsByID)
+	app.Patch("/news/:id", handlers.AuthMiddleware, handlers.PatchNews)
+	app.Delete("/news/:id", handlers.AuthMiddleware, handlers.DeleteNews)
 }
 
-func setupUsersRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /auth/signup", handlers.CreateUser)
-	mux.HandleFunc("POST /auth/login", handlers.LoginUser)
-	mux.HandleFunc("GET /auth/me", handlers.AuthMiddleware(handlers.GetMe))
-	mux.HandleFunc("GET /users", handlers.GetUsers)
-	mux.HandleFunc("GET /users/{id}", handlers.GetUsersByID)
-	mux.HandleFunc("PATCH /users", handlers.AuthMiddleware(handlers.UpdateUser))
-	mux.HandleFunc("DELETE /users/{id}", handlers.AuthMiddleware(handlers.DeleteUser))
+func setupUsersRoutes(app *fiber.App) {
+	app.Post("/auth/signup", handlers.CreateUser)
+	app.Post("/auth/login", handlers.LoginUser)
+	app.Get("/auth/me", handlers.AuthMiddleware, handlers.GetMe)
+	app.Get("/users", handlers.GetUsers)
+	app.Get("/users/:id", handlers.GetUsersByID)
+	app.Patch("/users", handlers.AuthMiddleware, handlers.UpdateUser)
+	app.Delete("/users/:id", handlers.AuthMiddleware, handlers.DeleteUser)
 }
 
-func setupStaticRoutes(mux *http.ServeMux) {
-	fileServer := http.FileServer(http.Dir("./uploads"))
-	mux.Handle("GET /uploads/", http.StripPrefix("/uploads/", fileServer))
+func setupStaticRoutes(app *fiber.App) {
+	app.Static("/uploads", "./uploads")
 }
